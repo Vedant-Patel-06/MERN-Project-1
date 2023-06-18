@@ -140,4 +140,42 @@ const getPostOffFollowing = async (req, res) => {
         });
     }
 };
-module.exports = {createPost, likeAndUnlikePost, deletePost, getPostOffFollowing};
+
+const updateCaption = async (req, res) => {
+
+    try {
+
+        const Post = await post.findById(req.params.id);
+
+        if(!Post){
+            return res.status(404).json({
+                success: false,
+                message: "Post Not Found",
+            });
+        };
+
+        if(Post.owner.toString() !== req.user._id.toString()){
+            return res.status(404).json({
+                success: false,
+                message: "Unauthorized",
+            });
+        };
+
+        Post.caption = req.body.caption;
+        await Post.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Caption Updated",
+        });
+        
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
+    };
+
+};
+
+module.exports = {createPost, likeAndUnlikePost, deletePost, getPostOffFollowing , updateCaption};
