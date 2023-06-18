@@ -114,6 +114,30 @@ const likeAndUnlikePost = async (req, res) =>{
             success: false,
             message: error.message,
         });
+    };
+};
+
+const getPostOffFollowing = async (req, res) => {
+    try {
+        
+        const user = await User.findById(req.user._id);
+
+        const posts = await post.find({
+            owner:{
+                $in: user.following,
+            },
+        });
+
+        res.status(200).json({
+            success: true,
+            posts,
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: error.message,
+        });
     }
-}
-module.exports = {createPost, likeAndUnlikePost, deletePost};
+};
+module.exports = {createPost, likeAndUnlikePost, deletePost, getPostOffFollowing};

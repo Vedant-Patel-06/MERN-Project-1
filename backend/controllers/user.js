@@ -8,7 +8,7 @@ const register = async (req, res) => {
     if (user) {
       return res
       .status(400)
-      .json({succuess: false,message: "User already exists",});
+      .json({success: false,message: "User already exists",});
     }
 
     user = await User.create({ 
@@ -26,14 +26,14 @@ const register = async (req, res) => {
         };
         
         res.status(200).cookie("token",token,options).json({
-            succuess: true,
+            success: true,
             user,
             token,
         });
 
   } catch (error) {
     res.status(500).json({
-      succuess: false,
+      success: false,
       message: error.message,
     });
   }
@@ -47,7 +47,7 @@ const login = async (req, res) => {
 
         if(!user) {
             return res.status(400).json({
-                succuess: false,
+                success: false,
                 message: "User not found",
             });
         }
@@ -56,7 +56,7 @@ const login = async (req, res) => {
 
         if(!isMatch) {
             return res.status(400).json({
-                succuess: false,
+                success: false,
                 message: "Password is incorrect",
             });
         }
@@ -69,18 +69,34 @@ const login = async (req, res) => {
         };
         
         res.status(200).cookie("token",token,options).json({
-            succuess: true,
+            success: true,
             user,
             token,
         });
 
     } catch (error) {
         res.status(500).json({
-            succuess: false,
+            success: false,
+            message: error.message,
+        });
+    };
+};
+
+const logOut = async (req, res) => {
+    try {
+
+        res.status(200).cookie('token',null,{expires:new Date(Date.now()), httpOnly:true,}).json({
+            success: true,
+            message:"Logged out",
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
             message: error.message,
         });
     }
-}
+};
 
 const followUser = async (req, res) => {
     try {
@@ -90,27 +106,44 @@ const followUser = async (req, res) => {
 
         if(!userToFollow){
             return res.status(400).json({
-                succuess: false,
+                success: false,
                 message: "User not found",
             });
         }
 
-        loggedInUser.following.push(userToFollow._id);
-        userToFollow.followers.push(loggedInUser._id);
+        if(loggedInUser.following.includes(userToFollow._id)){
+            const indexFollowing = loggedInUser.following.indexOf(userToFollow._id);
+            loggedInUser.following.splice(indexFollowing, 1);
 
-        await loggedInUser.save();
-        await userToFollow.save();
+            const indexFollowers = userToFollow.following.indexOf(loggedInUser._id);
+            userToFollow.followers.splice(indexFollowers, 1);
 
-        res.status(200).json({
-            succuess: true,
-            message:"User follows successfully"
-        });
+            await loggedInUser.save();
+            await userToFollow.save();
+
+            res.status(200).json({
+                success: true,
+                message:"User unfollowed successfully",
+            });
+        }
+        else{
+            loggedInUser.following.push(userToFollow._id);
+            userToFollow.followers.push(loggedInUser._id);
+    
+            await loggedInUser.save();
+            await userToFollow.save();
+    
+            res.status(200).json({
+                success: true,
+                message:"User followed successfully",
+            });
+        }
 
     } catch (error) {
         res.status(500).json({
-            succuess: false,
+            success: false,
             message: error.message,
         });
     }
 }
-module.exports = {register, login,followUser };
+module.exports = {register, login, followUser, logOut};
