@@ -178,4 +178,109 @@ const updateCaption = async (req, res) => {
 
 };
 
-module.exports = {createPost, likeAndUnlikePost, deletePost, getPostOffFollowing , updateCaption};
+const commentOnPost = async (req, res) => {
+
+    try {
+        
+        const Post = await post.findById(req.params.id);
+
+        let commentIndex = -1;
+
+        // Checking if comment already exists
+
+        
+        if(commentIndex !== -1){
+             Post.comments[commentIndex].comment = req.body.comment;
+ 
+             await Post.save();
+
+             return res.status(200).json({
+                success:true,
+                message:"Comment Updated",
+            });
+
+        }else{
+            Post.comments.push({
+                user: req.user._id,
+                comment:req.body.comment,
+            });
+
+            await Post.save();
+            return res.status(200).json({
+                success:true,
+                message:"Comment added",
+            });
+        };
+    } catch (error) {
+        
+        res.status(500).json({
+            success: false,
+            message: "Post not found",
+        });
+    };
+};
+
+const deleteComment = async (req, res) => {
+
+    try {
+        
+        const Post = await post.findById(req.params.id);
+
+        if (!Post) {
+            return res.status(404).json({
+                success: false,
+                message: "Post not found",
+            });
+        };
+
+        // Checking if owenrs wants to delete
+
+        if(Post.owner.toString()=== req.user._id.toString()){
+
+            if(req.body.commentId == undefined){
+                return res.status(400).json({
+                    success:false,
+                    message:'Comment ID is required'
+                });
+            };
+
+            Post.comments.forEach((item,index)=>{
+                if(item._id.toString() == req.body.commentId.toString()){
+                    return Post.comments.splice(index, 1);
+                };
+            });
+
+            await Post.save();
+
+            return res.status(200).json({
+                success: true,
+                message: 'Selected Comment has been Deleted',
+            })
+
+        }
+        else{
+
+            Post.comments.forEach((item,index)=>{
+                if(item.user.toString() == req.user._id.toString()){
+                    return Post.comments.splice(index, 1);
+                };
+            });
+            
+            await Post.save();
+
+            return res.status(200).json({
+                success: true,
+                message: 'Your Comment has been deleted',
+            });
+        };
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message:error.message,
+        });
+    }
+
+};
+
+module.exports = {createPost, likeAndUnlikePost, deletePost, getPostOffFollowing , updateCaption, commentOnPost, deleteComment};
