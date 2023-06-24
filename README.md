@@ -27,6 +27,8 @@ To get started with the app, follow these steps:
 6. Start the server: npm start or node server.js
 7. The server will start running at http://localhost:1080
 8. Use Postman for requesting and sending responses.
+# NOTE: 
+[`Use Postman to check to execute/run functioning of this code as frontend part is not supported in this project`].
 # Contributing
 Contributions are welcome! If you find any issues or want to add new features, please create an issue or submit a pull request.
 
